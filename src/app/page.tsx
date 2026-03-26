@@ -1,18 +1,4 @@
-"use client";
-
-import { useState } from "react";
-
 export default function Home() {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) {
-      setSubmitted(true);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#1a1a1a]" style={{ fontFamily: "var(--font-sans)" }}>
       {/* Nav */}
@@ -27,7 +13,9 @@ export default function Home() {
             <a href="#pricing" className="hover:text-[#1a1a1a] transition-colors">Pricing</a>
           </div>
           <a
-            href="#get-started"
+            href="https://cal.com/dineline/demo"
+            target="_blank"
+            rel="noopener noreferrer"
             className="bg-[#1a1a1a] hover:bg-[#333] text-white text-[14px] font-medium px-5 py-2.5 rounded-full transition-colors"
           >
             Book a demo
@@ -53,19 +41,21 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <a
-                href="#get-started"
+                href="https://cal.com/dineline/demo"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="bg-[#1a1a1a] hover:bg-[#333] text-white font-medium px-8 py-4 rounded-full text-[16px] transition-colors inline-block text-center"
               >
-                Start free trial
+                Book a free demo
               </a>
               <a
-                href="#how-it-works"
+                href="tel:+18622254694"
                 className="text-[#1a1a1a] font-medium px-8 py-4 text-[16px] inline-flex items-center gap-2 group"
               >
-                Watch it in action
-                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
                 </svg>
+                Hear it live
               </a>
             </div>
           </div>
@@ -230,19 +220,29 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonial */}
+      {/* Try It Yourself */}
       <section className="px-6 py-24 bg-[#1a1a1a] text-white">
         <div className="max-w-[800px] mx-auto text-center">
-          <p
-            className="text-[28px] md:text-[36px] leading-[1.4] font-normal mb-8"
+          <p className="text-[14px] font-medium text-white/40 uppercase tracking-widest mb-5">Try it yourself</p>
+          <h2
+            className="text-[36px] md:text-[44px] leading-[1.15] tracking-tight mb-6"
             style={{ fontFamily: "var(--font-serif)" }}
           >
-            &quot;We were losing about 15 bookings a week from calls we couldn&apos;t get to during service. First week with DineLine, every single one got answered. Paid for itself before the month was out.&quot;
+            Call our demo line. Right now.
+          </h2>
+          <p className="text-[17px] text-white/60 leading-relaxed mb-10 max-w-[500px] mx-auto">
+            Hear exactly what your customers would experience. Try booking a table, ask about the menu, or test it however you like.
           </p>
-          <div>
-            <p className="text-[15px] font-medium text-white/90">Marco Rossi</p>
-            <p className="text-[14px] text-white/50">Owner, Trattoria Bella &middot; London</p>
-          </div>
+          <a
+            href="tel:+18622254694"
+            className="inline-flex items-center gap-3 bg-white text-[#1a1a1a] font-semibold px-10 py-5 rounded-full text-[18px] hover:bg-white/90 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+            </svg>
+            +1 (862) 225-4694
+          </a>
+          <p className="text-[13px] text-white/30 mt-5">US number &middot; Standard call rates apply</p>
         </div>
       </section>
 
@@ -283,8 +283,8 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <a href="#get-started" className="block text-center border-2 border-[#1a1a1a] text-[#1a1a1a] font-medium py-3.5 rounded-full hover:bg-[#1a1a1a] hover:text-white transition-colors text-[15px]">
-                Get started
+              <a href="https://cal.com/dineline/demo" target="_blank" rel="noopener noreferrer" className="block text-center border-2 border-[#1a1a1a] text-[#1a1a1a] font-medium py-3.5 rounded-full hover:bg-[#1a1a1a] hover:text-white transition-colors text-[15px]">
+                Book a demo
               </a>
             </div>
             <div className="bg-[#1a1a1a] rounded-2xl p-8 md:p-10 text-white relative">
@@ -314,8 +314,8 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <a href="#get-started" className="block text-center bg-white text-[#1a1a1a] font-medium py-3.5 rounded-full hover:bg-white/90 transition-colors text-[15px]">
-                Get started
+              <a href="https://cal.com/dineline/demo" target="_blank" rel="noopener noreferrer" className="block text-center bg-white text-[#1a1a1a] font-medium py-3.5 rounded-full hover:bg-white/90 transition-colors text-[15px]">
+                Book a demo
               </a>
             </div>
           </div>
@@ -378,31 +378,16 @@ export default function Home() {
             Ready to stop losing bookings?
           </h2>
           <p className="text-[17px] text-[#666] mb-10 leading-relaxed">
-            Leave your email and we&apos;ll set up a quick demo tailored to your restaurant. Takes 15 minutes.
+            Book a 15-minute demo and we&apos;ll show you exactly how DineLine would work for your restaurant.
           </p>
-          {!submitted ? (
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-[440px] mx-auto">
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@restaurant.com"
-                className="flex-1 bg-white border border-[#ddd] rounded-full px-6 py-4 text-[15px] text-[#1a1a1a] placeholder:text-[#aaa] focus:outline-none focus:border-[#999] transition-colors"
-              />
-              <button
-                type="submit"
-                className="bg-[#1a1a1a] hover:bg-[#333] text-white font-medium px-8 py-4 rounded-full text-[15px] transition-colors whitespace-nowrap"
-              >
-                Book demo
-              </button>
-            </form>
-          ) : (
-            <div className="bg-white border border-[#e8e8e5] rounded-2xl p-10">
-              <p className="text-[18px] font-semibold mb-2">We&apos;ll be in touch shortly.</p>
-              <p className="text-[15px] text-[#666]">Check your inbox — we&apos;ll reach out within a few hours to schedule your demo.</p>
-            </div>
-          )}
+          <a
+            href="https://cal.com/dineline/demo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block bg-[#1a1a1a] hover:bg-[#333] text-white font-medium px-10 py-4.5 rounded-full text-[16px] transition-colors"
+          >
+            Book your free demo
+          </a>
           <p className="text-[13px] text-[#aaa] mt-5">No commitment required. Free 14-day trial on all plans.</p>
         </div>
       </section>
@@ -416,7 +401,7 @@ export default function Home() {
           <div className="flex items-center gap-6 text-[13px] text-[#999]">
             <a href="#" className="hover:text-[#666] transition-colors">Privacy</a>
             <a href="#" className="hover:text-[#666] transition-colors">Terms</a>
-            <a href="mailto:hello@dinelineai.com" className="hover:text-[#666] transition-colors">hello@dinelineai.com</a>
+            <a href="mailto:azan@getdineline.com" className="hover:text-[#666] transition-colors">azan@getdineline.com</a>
           </div>
           <p className="text-[13px] text-[#bbb]">&copy; 2026 DineLine</p>
         </div>
