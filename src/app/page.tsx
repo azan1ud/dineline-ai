@@ -401,7 +401,7 @@ export default function Home() {
           <div className="flex items-center gap-6 text-[13px] text-[#999]">
             <a href="/privacy" className="hover:text-[#666] transition-colors">Privacy</a>
             <a href="/terms" className="hover:text-[#666] transition-colors">Terms</a>
-            <a href="mailto:azan@getdineline.com" className="hover:text-[#666] transition-colors">azan@getdineline.com</a>
+            <a href="mailto:hello@getdineline.com" className="hover:text-[#666] transition-colors">hello@getdineline.com</a>
           </div>
           <p className="text-[13px] text-[#bbb]">&copy; 2026 DineLine</p>
         </div>

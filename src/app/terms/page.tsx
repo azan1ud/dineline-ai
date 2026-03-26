@@ -28,7 +28,7 @@ export default function Terms() {
           <section>
             <h2 className="text-[20px] font-semibold text-[#1a1a1a] mb-3">1. Agreement</h2>
             <p>
-              By using DineLine (&quot;the Service&quot;), you agree to these terms. The Service is provided by DineLine, contactable at azan@getdineline.com. If you do not agree with these terms, do not use the Service.
+              By using DineLine (&quot;the Service&quot;), you agree to these terms. The Service is provided by DineLine, contactable at hello@getdineline.com. If you do not agree with these terms, do not use the Service.
             </p>
           </section>
 
@@ -116,7 +116,7 @@ export default function Terms() {
             <h2 className="text-[20px] font-semibold text-[#1a1a1a] mb-3">13. Contact</h2>
             <p>
               For questions about these terms, contact us at{" "}
-              <a href="mailto:azan@getdineline.com" className="underline hover:text-[#1a1a1a]">azan@getdineline.com</a>.
+              <a href="mailto:hello@getdineline.com" className="underline hover:text-[#1a1a1a]">hello@getdineline.com</a>.
             </p>
           </section>
         </div>

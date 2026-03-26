@@ -28,7 +28,7 @@ export default function Privacy() {
           <section>
             <h2 className="text-[20px] font-semibold text-[#1a1a1a] mb-3">1. Who we are</h2>
             <p>
-              DineLine (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) provides AI-powered phone answering and booking services for restaurants. Our website is getdineline.com. If you have questions about this policy, email us at azan@getdineline.com.
+              DineLine (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) provides AI-powered phone answering and booking services for restaurants. Our website is getdineline.com. If you have questions about this policy, email us at hello@getdineline.com.
             </p>
           </section>
 
@@ -77,7 +77,7 @@ export default function Privacy() {
           <section>
             <h2 className="text-[20px] font-semibold text-[#1a1a1a] mb-3">7. Your rights</h2>
             <p>
-              Under UK GDPR, you have the right to access, correct, delete, or export your personal data. You can also object to processing or withdraw consent at any time. To exercise these rights, email azan@getdineline.com.
+              Under UK GDPR, you have the right to access, correct, delete, or export your personal data. You can also object to processing or withdraw consent at any time. To exercise these rights, email hello@getdineline.com.
             </p>
           </section>
 
@@ -99,7 +99,7 @@ export default function Privacy() {
             <h2 className="text-[20px] font-semibold text-[#1a1a1a] mb-3">10. Contact</h2>
             <p>
               For any privacy-related questions or requests, contact us at{" "}
-              <a href="mailto:azan@getdineline.com" className="underline hover:text-[#1a1a1a]">azan@getdineline.com</a>.
+              <a href="mailto:hello@getdineline.com" className="underline hover:text-[#1a1a1a]">hello@getdineline.com</a>.
             </p>
           </section>
         </div>
