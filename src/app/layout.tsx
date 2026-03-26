@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   title: "DineLine AI - Never Miss a Booking Again",
   description:
     "AI-powered phone answering and booking system for restaurants. 24/7 call handling, instant reservations, and happier customers.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
