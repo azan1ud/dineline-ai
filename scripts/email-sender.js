@@ -1,7 +1,13 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import { getDb } from "./db.js";
-import { sequences, personalizeEmail } from "./email-sequences.js";
+import { sequences as defaultSequences, allSequences, personalizeEmail } from "./email-sequences.js";
+
+// Select sequence variant: pass --sequence=B (or A/C/D/E) to use a different angle
+const seqFlag = process.argv.find(a => a.startsWith("--sequence="));
+const seqKey = seqFlag ? seqFlag.split("=")[1].toUpperCase() : "A";
+const sequences = allSequences[seqKey]?.sequences || defaultSequences;
+if (seqFlag) console.log(`Using sequence ${seqKey}: ${allSequences[seqKey]?.name}\n`);
 
 dotenv.config();
 
@@ -233,15 +239,23 @@ DineLine Email Sender
 =====================
 
 Commands:
-  node scripts/email-sender.js preview          — See what would be sent (dry run)
-  node scripts/email-sender.js send             — Actually send emails
-  node scripts/email-sender.js mark-replied <id> — Mark a restaurant as replied
-  node scripts/email-sender.js mark-booked <id>  — Mark a restaurant as booked
+  node scripts/email-sender.js preview                    — See what would be sent (dry run)
+  node scripts/email-sender.js send                       — Actually send emails
+  node scripts/email-sender.js send --sequence=B          — Send using a specific sequence
+  node scripts/email-sender.js mark-replied <id>          — Mark a restaurant as replied
+  node scripts/email-sender.js mark-booked <id>           — Mark a restaurant as booked
 
-Sequence:
-  Step 1: Initial outreach (sent immediately to new leads)
-  Step 2: Follow-up (3 days after step 1)
-  Step 3: Final follow-up (4 days after step 2)
+Sequence variants (A/B testing):
+  A — Missed Revenue:       "You're losing £1,200/mo in missed calls" (default)
+  B — Staff Time:           "Your team spends 20 hrs/week on the phone"
+  C — Competitors:          "When you miss a call, they call the next place"
+  D — Reviews Personalised: "{{review_count}} reviews — you're clearly growing fast"
+  E — No-Shows:             "15-20% of tables empty because someone forgot"
+
+Each variant has 3 steps:
+  Step 1: Initial outreach (sent immediately)
+  Step 2: Follow-up (3 days later)
+  Step 3: Final follow-up (4 days after that)
 
 Config (.env):
   SMTP_HOST=smtp.gmail.com
