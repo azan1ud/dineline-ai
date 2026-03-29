@@ -1,4 +1,11 @@
+"use client";
+
+import { useState } from "react";
+
 export default function Home() {
+  const [missedCalls, setMissedCalls] = useState(10);
+  const lostRevenue = missedCalls * 80 * 4;
+
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#1a1a1a]" style={{ fontFamily: "var(--font-sans)" }}>
       {/* Nav */}
@@ -36,9 +43,17 @@ export default function Home() {
             >
               Your restaurant is losing bookings right now.
             </h1>
-            <p className="text-[19px] leading-[1.7] text-[#555] max-w-[540px] mb-10">
+            <p className="text-[19px] leading-[1.7] text-[#555] max-w-[540px] mb-8">
               Every missed call is a table that stays empty. DineLine answers your phone 24/7, takes bookings, and handles the questions your staff shouldn&apos;t have to.
             </p>
+            {/* Trust badges */}
+            <div className="flex flex-wrap gap-4 mb-10">
+              {["Setup in 24 hours", "No contracts", "Cancel anytime", "14-day free trial"].map((badge, i) => (
+                <span key={i} className="text-[13px] text-[#777] bg-white border border-[#e8e8e5] px-3.5 py-1.5 rounded-full">
+                  {badge}
+                </span>
+              ))}
+            </div>
             <div className="flex flex-col sm:flex-row gap-4">
               <a
                 href="https://cal.com/dineline/demo"
@@ -59,6 +74,15 @@ export default function Home() {
               </a>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* City trust strip */}
+      <section className="px-6 pb-16">
+        <div className="max-w-[1200px] mx-auto">
+          <p className="text-[13px] text-[#aaa] text-center tracking-wide">
+            Helping restaurants in <span className="text-[#777]">London</span> &middot; <span className="text-[#777]">Manchester</span> &middot; <span className="text-[#777]">Birmingham</span> &middot; <span className="text-[#777]">Edinburgh</span> &middot; <span className="text-[#777]">Glasgow</span> &middot; <span className="text-[#777]">Leeds</span> &middot; <span className="text-[#777]">Bristol</span> &middot; <span className="text-[#777]">Liverpool</span> &middot; <span className="text-[#777]">Sheffield</span>
+          </p>
         </div>
       </section>
 
@@ -118,6 +142,71 @@ export default function Home() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ROI Calculator */}
+      <section className="px-6 pb-24">
+        <div className="max-w-[600px] mx-auto">
+          <div className="bg-white rounded-2xl border border-[#e8e8e5] p-8 md:p-10">
+            <p className="text-[14px] font-medium text-[#888] uppercase tracking-widest mb-2">Calculator</p>
+            <h3
+              className="text-[24px] md:text-[28px] leading-[1.2] tracking-tight mb-8"
+              style={{ fontFamily: "var(--font-serif)" }}
+            >
+              How much are missed calls costing you?
+            </h3>
+            <div className="mb-8">
+              <label className="text-[15px] text-[#555] mb-3 block">
+                Missed calls per week: <span className="font-semibold text-[#1a1a1a]">{missedCalls}</span>
+              </label>
+              <input
+                type="range"
+                min="1"
+                max="40"
+                value={missedCalls}
+                onChange={(e) => setMissedCalls(parseInt(e.target.value))}
+                className="w-full h-2 bg-[#e8e8e5] rounded-full appearance-none cursor-pointer accent-[#1a1a1a]"
+              />
+              <div className="flex justify-between text-[12px] text-[#aaa] mt-1">
+                <span>1</span>
+                <span>40</span>
+              </div>
+            </div>
+            <div className="bg-[#FAFAF8] rounded-xl p-6 mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[14px] text-[#777]">Revenue lost per missed booking</span>
+                <span className="text-[14px] font-medium text-[#1a1a1a]">£80</span>
+              </div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[14px] text-[#777]">Lost bookings per month</span>
+                <span className="text-[14px] font-medium text-[#1a1a1a]">{missedCalls * 4}</span>
+              </div>
+              <div className="border-t border-[#e8e8e5] pt-3 mt-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[16px] font-medium text-[#1a1a1a]">You&apos;re losing</span>
+                  <span
+                    className="text-[32px] font-semibold tracking-tight text-[#1a1a1a]"
+                    style={{ fontFamily: "var(--font-serif)" }}
+                  >
+                    £{lostRevenue.toLocaleString()}
+                    <span className="text-[15px] font-normal text-[#888]">/month</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <p className="text-[14px] text-[#999] mb-6 text-center">
+              DineLine costs from £199/month. {lostRevenue > 0 && <>That&apos;s a <span className="font-semibold text-[#1a1a1a]">{Math.round(lostRevenue / 199)}x return</span> on your investment.</>}
+            </p>
+            <a
+              href="https://cal.com/dineline/demo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center bg-[#1a1a1a] hover:bg-[#333] text-white font-medium py-3.5 rounded-full transition-colors text-[15px]"
+            >
+              Stop losing money — book a demo
+            </a>
           </div>
         </div>
       </section>
@@ -216,6 +305,32 @@ export default function Home() {
                 <p className="text-[15px] leading-[1.7] text-[#666]">{item.description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Demo Video Placeholder */}
+      <section className="px-6 pb-24">
+        <div className="max-w-[800px] mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-[14px] font-medium text-[#888] uppercase tracking-widest mb-5">See it in action</p>
+            <h2
+              className="text-[36px] md:text-[44px] leading-[1.15] tracking-tight"
+              style={{ fontFamily: "var(--font-serif)" }}
+            >
+              Watch DineLine take a booking
+            </h2>
+          </div>
+          {/* Replace this div with an actual video embed once recorded */}
+          <div className="aspect-video bg-[#1a1a1a] rounded-2xl flex items-center justify-center relative overflow-hidden">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+              <p className="text-white/60 text-[15px]">Demo video coming soon</p>
+            </div>
           </div>
         </div>
       </section>
@@ -406,6 +521,18 @@ export default function Home() {
           <p className="text-[13px] text-[#bbb]">&copy; 2026 DineLine</p>
         </div>
       </footer>
+
+      {/* Sticky mobile CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#FAFAF8]/95 backdrop-blur-sm border-t border-[#e8e8e5] p-4">
+        <a
+          href="https://cal.com/dineline/demo"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block text-center bg-[#1a1a1a] hover:bg-[#333] text-white font-medium py-3.5 rounded-full text-[15px] transition-colors"
+        >
+          Book a free demo
+        </a>
+      </div>
     </div>
   );
 }
