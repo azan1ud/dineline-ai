@@ -6,23 +6,54 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const { message } = body
 
-  // Vapi sends tool calls in this format
+  console.log('Vapi webhook received:', JSON.stringify(body).slice(0, 500))
+
+  // NEW FORMAT: Vapi Tools send "tool-calls" (not "function-call")
+  if (message?.type === 'tool-calls') {
+    const toolCallList = message.toolCallList || []
+    const results = []
+
+    for (const toolCall of toolCallList) {
+      const functionName = toolCall.function?.name
+      const params = typeof toolCall.function?.arguments === 'string'
+        ? JSON.parse(toolCall.function.arguments)
+        : toolCall.function?.arguments
+
+      let result = "I'm having trouble processing that request."
+
+      if (functionName === 'checkAvailability') {
+        result = await handleCheckAvailability(params)
+      } else if (functionName === 'createBooking') {
+        result = await handleCreateBooking(params)
+      } else if (functionName === 'lookupCustomer') {
+        result = await handleLookupCustomer(params)
+      } else if (functionName === 'cancelBooking') {
+        result = await handleCancelBooking(params)
+      }
+
+      results.push({ toolCallId: toolCall.id, result })
+    }
+
+    return NextResponse.json({ results })
+  }
+
+  // OLD FORMAT: Vapi Functions send "function-call"
   if (message?.type === 'function-call') {
     const functionName = message.functionCall?.name
     const params = message.functionCall?.parameters
+    let result = "I'm having trouble processing that request."
 
     if (functionName === 'checkAvailability') {
-      return handleCheckAvailability(params)
+      result = await handleCheckAvailability(params)
+    } else if (functionName === 'createBooking') {
+      result = await handleCreateBooking(params)
+    } else if (functionName === 'lookupCustomer') {
+      result = await handleLookupCustomer(params)
+    } else if (functionName === 'cancelBooking') {
+      result = await handleCancelBooking(params)
     }
-    if (functionName === 'createBooking') {
-      return handleCreateBooking(params)
-    }
-    if (functionName === 'lookupCustomer') {
-      return handleLookupCustomer(params)
-    }
-    if (functionName === 'cancelBooking') {
-      return handleCancelBooking(params)
-    }
+
+    return NextResponse.json({ result })
   }
 
   // Vapi end-of-call report — log the call
@@ -33,10 +64,9 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ result: 'ok' })
 }
 
-async function handleCheckAvailability(params: any) {
+async function handleCheckAvailability(params: any): Promise<string> {
   const { date, time, party_size, restaurant_id } = params
 
-  // Get restaurant capacity
   const { data: restaurant } = await supabaseAdmin
     .from('restaurants')
     .select('tables_per_slot, hours')
@@ -44,12 +74,9 @@ async function handleCheckAvailability(params: any) {
     .single()
 
   if (!restaurant) {
-    return NextResponse.json({
-      result: "I'm sorry, I'm having trouble checking availability right now. Let me take your number and have the manager call you back."
-    })
+    return "I'm sorry, I'm having trouble checking availability right now. Let me take your number and have the manager call you back."
   }
 
-  // Count existing bookings for that slot
   const { count } = await supabaseAdmin
     .from('bookings')
     .select('*', { count: 'exact', head: true })
@@ -61,12 +88,9 @@ async function handleCheckAvailability(params: any) {
   const available = (count ?? 0) < restaurant.tables_per_slot
 
   if (available) {
-    return NextResponse.json({
-      result: `Yes, we have availability on ${date} at ${time} for ${party_size} guests.`
-    })
+    return `Yes, we have availability on ${date} at ${time} for ${party_size} guests.`
   }
 
-  // Find next available slot
   const slots = generateSlots(restaurant.hours, date)
   for (const slot of slots) {
     const { count: slotCount } = await supabaseAdmin
@@ -78,18 +102,14 @@ async function handleCheckAvailability(params: any) {
       .eq('status', 'confirmed')
 
     if ((slotCount ?? 0) < restaurant.tables_per_slot) {
-      return NextResponse.json({
-        result: `Sorry, ${time} is fully booked. The nearest available time is ${slot}. Would that work for you?`
-      })
+      return `Sorry, ${time} is fully booked. The nearest available time is ${slot}. Would that work for you?`
     }
   }
 
-  return NextResponse.json({
-    result: `I'm sorry, we're fully booked on ${date}. Would you like to try a different date?`
-  })
+  return `I'm sorry, we're fully booked on ${date}. Would you like to try a different date?`
 }
 
-async function handleCreateBooking(params: any) {
+async function handleCreateBooking(params: any): Promise<string> {
   const { customer_name, customer_phone, party_size, date, time, dietary_notes, restaurant_id } = params
 
   const { data, error } = await supabaseAdmin
@@ -108,17 +128,13 @@ async function handleCreateBooking(params: any) {
     .single()
 
   if (error) {
-    return NextResponse.json({
-      result: "I'm sorry, there was a problem making that reservation. Let me take your number and have the manager call you back to confirm."
-    })
+    return "I'm sorry, there was a problem making that reservation. Let me take your number and have the manager call you back to confirm."
   }
 
-  return NextResponse.json({
-    result: `Your reservation has been confirmed. ${customer_name}, party of ${party_size}, on ${date} at ${time}. We look forward to seeing you!`
-  })
+  return `Your reservation has been confirmed. ${customer_name}, party of ${party_size}, on ${date} at ${time}. We look forward to seeing you!`
 }
 
-async function handleLookupCustomer(params: any) {
+async function handleLookupCustomer(params: any): Promise<string> {
   const { phone, restaurant_id } = params
 
   const { data: bookings } = await supabaseAdmin
@@ -131,18 +147,14 @@ async function handleLookupCustomer(params: any) {
     .order('booking_date', { ascending: true })
 
   if (!bookings || bookings.length === 0) {
-    return NextResponse.json({
-      result: "I don't have any upcoming reservations under this phone number."
-    })
+    return "I don't have any upcoming reservations under this phone number."
   }
 
   const booking = bookings[0]
-  return NextResponse.json({
-    result: `I found a reservation under ${booking.customer_name} for ${booking.party_size} guests on ${booking.booking_date} at ${booking.booking_time}. Would you like to modify or cancel this booking?`
-  })
+  return `I found a reservation under ${booking.customer_name} for ${booking.party_size} guests on ${booking.booking_date} at ${booking.booking_time}. Would you like to modify or cancel this booking?`
 }
 
-async function handleCancelBooking(params: any) {
+async function handleCancelBooking(params: any): Promise<string> {
   const { phone, date, restaurant_id } = params
 
   const { data, error } = await supabaseAdmin
@@ -155,14 +167,10 @@ async function handleCancelBooking(params: any) {
     .select()
 
   if (!data || data.length === 0) {
-    return NextResponse.json({
-      result: "I couldn't find a matching reservation to cancel. Could you double-check the date?"
-    })
+    return "I couldn't find a matching reservation to cancel. Could you double-check the date?"
   }
 
-  return NextResponse.json({
-    result: `Your reservation on ${date} has been cancelled. We hope to see you another time!`
-  })
+  return `Your reservation on ${date} has been cancelled. We hope to see you another time!`
 }
 
 async function handleEndOfCallReport(message: any) {
