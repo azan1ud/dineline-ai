@@ -8,6 +8,27 @@ export async function POST(req: NextRequest) {
 
   console.log('Vapi webhook received:', JSON.stringify(body).slice(0, 500))
 
+  // Vapi sends assistant-request at call start — inject today's date into the system prompt
+  if (message?.type === 'assistant-request') {
+    const today = new Date().toLocaleDateString('en-GB', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      timeZone: 'Europe/London'
+    })
+    return NextResponse.json({
+      assistant: {
+        firstMessage: `Good ${new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}, thank you for calling Bella's Italian Kitchen! This is Riley, how can I help you today?`,
+        model: {
+          messages: [
+            {
+              role: 'system',
+              content: `IMPORTANT: Today's date is ${today}. Use this to correctly interpret relative dates like "today", "tomorrow", "next Friday", etc.\n\n` + (message.assistant?.model?.messages?.[0]?.content || '')
+            }
+          ]
+        }
+      }
+    })
+  }
+
   // NEW FORMAT: Vapi Tools send "tool-calls" (not "function-call")
   if (message?.type === 'tool-calls') {
     const toolCallList = message.toolCallList || []
