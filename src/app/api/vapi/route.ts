@@ -61,6 +61,14 @@ export async function POST(req: NextRequest) {
     return handleEndOfCallReport(message)
   }
 
+  // Some Vapi versions send end-of-call at top level (not nested in message)
+  if (body?.type === 'end-of-call-report') {
+    return handleEndOfCallReport(body)
+  }
+
+  // Catch-all: log unknown webhook types for debugging
+  console.log('Vapi unhandled webhook type:', message?.type || body?.type || 'unknown')
+
   return NextResponse.json({ result: 'ok' })
 }
 
@@ -174,31 +182,51 @@ async function handleCancelBooking(params: any): Promise<string> {
 }
 
 async function handleEndOfCallReport(message: any) {
-  const { call, summary, recordingUrl, transcript } = message
+  console.log('End-of-call report received:', JSON.stringify(message).slice(0, 1000))
+
+  const call = message.call || {}
+  const summary = message.summary || message.analysis?.summary || ''
+  const recordingUrl = message.recordingUrl || message.artifact?.recordingUrl || ''
+  const transcript = message.transcript || message.artifact?.transcript || ''
 
   // Try to find restaurant by the phone number that was called
-  const phoneNumber = call?.phoneNumber?.number
+  const phoneNumber = call.phoneNumber?.number || call.phoneNumberId || ''
   let restaurantId = null
 
   if (phoneNumber) {
+    const cleanNumber = phoneNumber.replace(/[\s\-()]/g, '')
     const { data } = await supabaseAdmin
       .from('restaurants')
       .select('id')
-      .eq('vapi_phone_number', phoneNumber.replace(/\s/g, ''))
+      .or(`vapi_phone_number.eq.${cleanNumber},phone.eq.${cleanNumber}`)
       .single()
     restaurantId = data?.id
   }
 
-  await supabaseAdmin.from('call_logs').insert({
+  // Fallback: use the only restaurant we have (demo)
+  if (!restaurantId) {
+    const { data } = await supabaseAdmin
+      .from('restaurants')
+      .select('id')
+      .limit(1)
+      .single()
+    restaurantId = data?.id
+  }
+
+  const { error } = await supabaseAdmin.from('call_logs').insert({
     restaurant_id: restaurantId,
-    vapi_call_id: call?.id,
-    caller_phone: call?.customer?.number,
-    duration_seconds: call?.duration,
-    summary,
-    recording_url: recordingUrl,
+    vapi_call_id: call.id || null,
+    caller_phone: call.customer?.number || null,
+    duration_seconds: call.duration ? Math.round(call.duration) : null,
+    summary: typeof summary === 'string' ? summary : JSON.stringify(summary),
+    recording_url: typeof recordingUrl === 'string' ? recordingUrl : null,
     transcript: typeof transcript === 'string' ? transcript : JSON.stringify(transcript),
-    booking_made: summary?.toLowerCase().includes('booking') || summary?.toLowerCase().includes('reservation')
+    booking_made: typeof summary === 'string' && (summary.toLowerCase().includes('booking') || summary.toLowerCase().includes('reservation'))
   })
+
+  if (error) {
+    console.error('Failed to insert call log:', error)
+  }
 
   return NextResponse.json({ result: 'logged' })
 }
