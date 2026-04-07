@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { sendBookingConfirmation, sendBookingCancellation } from '@/lib/sms'
 
 // GET /api/bookings?restaurant_id=xxx&date=2026-04-06
 export async function GET(req: NextRequest) {
@@ -71,6 +72,13 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json()
   const { id, status } = body
 
+  // Get booking details before updating (for SMS)
+  const { data: existing } = await supabaseAdmin
+    .from('bookings')
+    .select('*, restaurants(name)')
+    .eq('id', id)
+    .single()
+
   const { data, error } = await supabaseAdmin
     .from('bookings')
     .update({ status, updated_at: new Date().toISOString() })
@@ -79,5 +87,17 @@ export async function PATCH(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Send cancellation SMS
+  if (status === 'cancelled' && existing?.customer_phone) {
+    sendBookingCancellation(
+      existing.customer_phone,
+      existing.customer_name,
+      existing.booking_date,
+      existing.booking_time,
+      existing.restaurants?.name || 'the restaurant'
+    )
+  }
+
   return NextResponse.json({ booking: data })
 }

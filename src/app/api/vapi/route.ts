@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { sendBookingConfirmation, sendBookingCancellation } from '@/lib/sms'
 
 // This endpoint handles Vapi tool calls from Riley
 export async function POST(req: NextRequest) {
@@ -158,6 +159,16 @@ async function handleCreateBooking(params: any): Promise<string> {
 
   if (error) {
     return "I'm sorry, there was a problem making that reservation. Let me take your number and have the manager call you back to confirm."
+  }
+
+  // Send confirmation SMS
+  if (customer_phone) {
+    const { data: restaurant } = await supabaseAdmin
+      .from('restaurants')
+      .select('name')
+      .eq('id', restaurant_id)
+      .single()
+    sendBookingConfirmation(customer_phone, customer_name, date, time, parseInt(party_size), restaurant?.name || 'the restaurant')
   }
 
   return `Your reservation has been confirmed. ${customer_name}, party of ${party_size}, on ${date} at ${time}. We look forward to seeing you!`
