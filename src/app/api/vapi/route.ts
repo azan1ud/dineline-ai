@@ -2,6 +2,33 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { sendBookingConfirmation, sendBookingCancellation } from '@/lib/sms'
 
+// Demo call rate limiting — prevent spam burning Vapi credits
+const callLog: { timestamp: number; caller: string }[] = []
+const DAILY_LIMIT = 20 // max calls per day across all callers
+const PER_CALLER_LIMIT = 3 // max calls per phone per hour
+
+function isRateLimited(callerPhone: string): boolean {
+  const now = Date.now()
+  const oneDayAgo = now - 24 * 60 * 60 * 1000
+  const oneHourAgo = now - 60 * 60 * 1000
+
+  // Clean old entries
+  while (callLog.length > 0 && callLog[0].timestamp < oneDayAgo) {
+    callLog.shift()
+  }
+
+  const dailyCalls = callLog.filter(c => c.timestamp > oneDayAgo).length
+  if (dailyCalls >= DAILY_LIMIT) return true
+
+  if (callerPhone) {
+    const callerCalls = callLog.filter(c => c.timestamp > oneHourAgo && c.caller === callerPhone).length
+    if (callerCalls >= PER_CALLER_LIMIT) return true
+  }
+
+  callLog.push({ timestamp: now, caller: callerPhone })
+  return false
+}
+
 // This endpoint handles Vapi tool calls from Riley
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -11,6 +38,18 @@ export async function POST(req: NextRequest) {
 
   // Vapi sends assistant-request at call start — inject today's date into the system prompt
   if (message?.type === 'assistant-request') {
+    // Rate limit demo calls
+    const callerPhone = message.call?.customer?.number || ''
+    if (isRateLimited(callerPhone)) {
+      return NextResponse.json({
+        assistant: {
+          firstMessage: "Thank you for your interest in DineLine! Our demo line has reached its limit for now. Please visit our website to book a proper demo with our team. Goodbye!",
+          model: {
+            messages: [{ role: 'system', content: 'The demo limit has been reached. Politely end the call after the first message.' }]
+          }
+        }
+      })
+    }
     const today = new Date().toLocaleDateString('en-GB', {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
       timeZone: 'Europe/London'
