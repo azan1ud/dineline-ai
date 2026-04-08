@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleCheckAvailability(params: any): Promise<string> {
-  const { date, time, party_size, restaurant_id } = params
+  const { date, time, party_size, restaurant_id, customer_phone } = params
 
   const { data: restaurant } = await supabaseAdmin
     .from('restaurants')
@@ -144,6 +144,22 @@ async function handleCheckAvailability(params: any): Promise<string> {
 
   if (!restaurant) {
     return "I'm sorry, I'm having trouble checking availability right now. Let me take your number and have the manager call you back."
+  }
+
+  // Check if this caller already has a booking at this date/time
+  if (customer_phone) {
+    const { data: existing } = await supabaseAdmin
+      .from('bookings')
+      .select('id, customer_name, party_size')
+      .eq('restaurant_id', restaurant_id)
+      .eq('customer_phone', customer_phone)
+      .eq('booking_date', date)
+      .eq('status', 'confirmed')
+
+    if (existing && existing.length > 0) {
+      const b = existing[0]
+      return `You already have a booking on ${date} for ${b.party_size} guests under ${b.customer_name}. Would you like to modify or cancel it instead?`
+    }
   }
 
   const { count } = await supabaseAdmin
@@ -180,6 +196,21 @@ async function handleCheckAvailability(params: any): Promise<string> {
 
 async function handleCreateBooking(params: any): Promise<string> {
   const { customer_name, customer_phone, party_size, date, time, dietary_notes, restaurant_id } = params
+
+  // Block duplicate booking from same phone on same date
+  if (customer_phone) {
+    const { data: existing } = await supabaseAdmin
+      .from('bookings')
+      .select('id')
+      .eq('restaurant_id', restaurant_id)
+      .eq('customer_phone', customer_phone)
+      .eq('booking_date', date)
+      .eq('status', 'confirmed')
+
+    if (existing && existing.length > 0) {
+      return `You already have a confirmed booking on ${date}. Would you like to modify it instead?`
+    }
+  }
 
   const { data, error } = await supabaseAdmin
     .from('bookings')
