@@ -229,27 +229,42 @@ async function handleLookupCustomer(params: any): Promise<string> {
     return "I don't have any upcoming reservations under this phone number."
   }
 
-  const booking = bookings[0]
-  return `I found a reservation under ${booking.customer_name} for ${booking.party_size} guests on ${booking.booking_date} at ${booking.booking_time}. Would you like to modify or cancel this booking?`
+  const list = bookings.map(b => `Booking ID: ${b.id} — ${b.customer_name}, party of ${b.party_size}, ${b.booking_date} at ${b.booking_time}`).join('\n')
+  return `Found ${bookings.length} upcoming reservation(s):\n${list}`
 }
 
 async function handleCancelBooking(params: any): Promise<string> {
-  const { phone, date, restaurant_id } = params
+  const { booking_id, phone, date, restaurant_id } = params
 
-  const { data, error } = await supabaseAdmin
+  // Try by booking_id first, then fall back to phone+date
+  let query = supabaseAdmin
     .from('bookings')
     .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-    .eq('restaurant_id', restaurant_id)
-    .eq('customer_phone', phone)
-    .eq('booking_date', date)
+
+  if (booking_id) {
+    query = query.eq('id', booking_id)
+  } else if (phone && date) {
+    query = query
+      .eq('restaurant_id', restaurant_id)
+      .eq('customer_phone', phone)
+      .eq('booking_date', date)
+  } else if (phone) {
+    query = query
+      .eq('restaurant_id', restaurant_id)
+      .eq('customer_phone', phone)
+  } else {
+    return "I need more details to find the booking. Could you tell me the date of the reservation?"
+  }
+
+  const { data, error } = await query
     .eq('status', 'confirmed')
     .select()
 
   if (!data || data.length === 0) {
-    return "I couldn't find a matching reservation to cancel. Could you double-check the date?"
+    return "I couldn't find a matching reservation to cancel. Could you double-check the details?"
   }
 
-  return `Your reservation on ${date} has been cancelled. We hope to see you another time!`
+  return `Your reservation has been cancelled. We hope to see you another time!`
 }
 
 async function handleEndOfCallReport(message: any) {
