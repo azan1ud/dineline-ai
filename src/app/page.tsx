@@ -321,16 +321,17 @@ export default function Home() {
               Watch DineLine take a booking
             </h2>
           </div>
-          {/* Replace this div with an actual video embed once recorded */}
-          <div className="aspect-video bg-[#1a1a1a] rounded-2xl flex items-center justify-center relative overflow-hidden">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-              <p className="text-white/60 text-[15px]">Demo video coming soon</p>
-            </div>
+          <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl">
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/DIyRGRWqZQc"
+              title="DineLine Demo — AI Restaurant Phone System"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            />
           </div>
         </div>
       </section>
