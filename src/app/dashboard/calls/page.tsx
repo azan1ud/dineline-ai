@@ -17,6 +17,7 @@ export default function CallsPage() {
   const [calls, setCalls] = useState<CallLog[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [actualBookingsMade, setActualBookingsMade] = useState(0)
 
   useEffect(() => {
     loadCalls()
@@ -29,6 +30,7 @@ export default function CallsPage() {
     const res = await fetch(`/api/calls?restaurant_id=${restaurant.id}`)
     const data = await res.json()
     setCalls(data.calls || [])
+    setActualBookingsMade(data.actualBookingsMade || 0)
     setLoading(false)
   }
 
@@ -57,8 +59,7 @@ export default function CallsPage() {
     return `${days}d ago`
   }
 
-  const bookingsMade = calls.filter(c => c.booking_made).length
-  const conversionRate = calls.length > 0 ? Math.round((bookingsMade / calls.length) * 100) : 0
+  const conversionRate = calls.length > 0 ? Math.round((actualBookingsMade / calls.length) * 100) : 0
   const avgDuration = calls.length > 0
     ? calls.reduce((sum, c) => sum + (c.duration_seconds || 0), 0) / calls.filter(c => c.duration_seconds).length
     : 0
@@ -88,7 +89,7 @@ export default function CallsPage() {
               <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
           </div>
-          <p className="text-3xl font-bold text-emerald-400 mt-3">{bookingsMade}</p>
+          <p className="text-3xl font-bold text-emerald-400 mt-3">{actualBookingsMade}</p>
         </div>
         <div className="bg-gray-900/50 rounded-xl p-5 border border-gray-800/50">
           <div className="flex items-center justify-between">

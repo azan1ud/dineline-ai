@@ -17,5 +17,14 @@ export async function GET(req: NextRequest) {
     .limit(100)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ calls: data })
+
+  // Get actual booking count (AI-created, confirmed) for accurate stats
+  const { count: actualBookings } = await supabaseAdmin
+    .from('bookings')
+    .select('*', { count: 'exact', head: true })
+    .eq('restaurant_id', restaurantId)
+    .eq('booked_via', 'ai_call')
+    .eq('status', 'confirmed')
+
+  return NextResponse.json({ calls: data, actualBookingsMade: actualBookings || 0 })
 }

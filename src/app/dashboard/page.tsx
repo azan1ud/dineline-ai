@@ -68,13 +68,18 @@ export default function DashboardPage() {
     const restaurant = JSON.parse(localStorage.getItem('dl_restaurant') || '{}')
     const res = await fetch(`/api/calls?restaurant_id=${restaurant.id}`)
     const data = await res.json()
+    const calls: CallLog[] = data.calls || []
 
-    // Find the call log closest to this booking's created_at time (within 5 min)
-    const bookingTime = new Date(booking.created_at).getTime()
-    const match = (data.calls || []).find((c: CallLog) => {
-      const callTime = new Date(c.created_at).getTime()
-      return Math.abs(callTime - bookingTime) < 5 * 60 * 1000
-    })
+    // Match by: 1) customer name in summary, 2) matching phone, 3) closest time
+    const name = booking.customer_name.toLowerCase()
+    const match =
+      calls.find(c => c.summary?.toLowerCase().includes(name)) ||
+      (booking.customer_phone ? calls.find(c => c.caller_phone === booking.customer_phone) : null) ||
+      calls.find(c => {
+        const diff = Math.abs(new Date(c.created_at).getTime() - new Date(booking.created_at).getTime())
+        return diff < 60 * 60 * 1000 // 1 hour window
+      })
+
     setCallLogs(prev => ({ ...prev, [booking.id]: match || null }))
   }
 

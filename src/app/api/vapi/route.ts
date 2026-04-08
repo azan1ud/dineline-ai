@@ -302,9 +302,14 @@ async function handleEndOfCallReport(message: any) {
   console.log('End-of-call report received:', JSON.stringify(message).slice(0, 1000))
 
   const call = message.call || {}
-  const summary = message.summary || message.analysis?.summary || ''
+  const summary = message.summary || message.analysis?.summary || message.artifact?.summary || ''
   const recordingUrl = message.recordingUrl || message.artifact?.recordingUrl || ''
   const transcript = message.transcript || message.artifact?.transcript || ''
+
+  // Duration: try multiple Vapi field locations
+  const durationRaw = call.duration || message.duration || message.durationSeconds ||
+    message.artifact?.duration || call.endedAt && call.startedAt ?
+    (new Date(call.endedAt).getTime() - new Date(call.startedAt).getTime()) / 1000 : null
 
   // Try to find restaurant by the phone number that was called
   const phoneNumber = call.phoneNumber?.number || call.phoneNumberId || ''
@@ -334,7 +339,7 @@ async function handleEndOfCallReport(message: any) {
     restaurant_id: restaurantId,
     vapi_call_id: call.id || null,
     caller_phone: call.customer?.number || null,
-    duration_seconds: call.duration ? Math.round(call.duration) : null,
+    duration_seconds: durationRaw ? Math.round(durationRaw) : null,
     summary: typeof summary === 'string' ? summary : JSON.stringify(summary),
     recording_url: typeof recordingUrl === 'string' ? recordingUrl : null,
     transcript: typeof transcript === 'string' ? transcript : JSON.stringify(transcript),
