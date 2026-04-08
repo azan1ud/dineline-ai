@@ -32,7 +32,7 @@ export default function DashboardPage() {
     if (!restaurant.id) return
 
     setLoading(true)
-    const res = await fetch(`/api/bookings?restaurant_id=${restaurant.id}&date=${selectedDate}`)
+    const res = await fetch(`/api/bookings?restaurant_id=${restaurant.id}&date=${selectedDate}&status=confirmed`)
     const data = await res.json()
     const sorted = (data.bookings || []).sort((a: Booking, b: Booking) =>
       a.booking_time.localeCompare(b.booking_time)
