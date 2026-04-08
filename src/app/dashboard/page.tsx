@@ -16,12 +16,21 @@ interface Booking {
   created_at: string
 }
 
+interface CallLog {
+  id: string
+  summary: string | null
+  caller_phone: string | null
+  created_at: string
+  duration_seconds: number | null
+}
+
 export default function DashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [callLogs, setCallLogs] = useState<Record<string, CallLog | null>>({})
 
   useEffect(() => {
     loadBookings()
@@ -48,6 +57,23 @@ export default function DashboardPage() {
       body: JSON.stringify({ id, status })
     })
     loadBookings()
+  }
+
+  async function loadCallLog(booking: Booking) {
+    if (callLogs[booking.id] !== undefined) return // already loaded
+    if (booking.booked_via !== 'ai_call') { setCallLogs(prev => ({ ...prev, [booking.id]: null })); return }
+
+    const restaurant = JSON.parse(localStorage.getItem('dl_restaurant') || '{}')
+    const res = await fetch(`/api/calls?restaurant_id=${restaurant.id}`)
+    const data = await res.json()
+
+    // Find the call log closest to this booking's created_at time (within 5 min)
+    const bookingTime = new Date(booking.created_at).getTime()
+    const match = (data.calls || []).find((c: CallLog) => {
+      const callTime = new Date(c.created_at).getTime()
+      return Math.abs(callTime - bookingTime) < 5 * 60 * 1000
+    })
+    setCallLogs(prev => ({ ...prev, [booking.id]: match || null }))
   }
 
   function formatTime(time: string) {
@@ -181,7 +207,7 @@ export default function DashboardPage() {
               <div key={booking.id} className="hover:bg-gray-800/20 transition-colors">
                 <div
                   className="px-6 py-4 flex items-center gap-4 cursor-pointer"
-                  onClick={() => setExpandedId(expandedId === booking.id ? null : booking.id)}
+                  onClick={() => { const newId = expandedId === booking.id ? null : booking.id; setExpandedId(newId); if (newId) loadCallLog(booking) }}
                 >
                   {/* Time */}
                   <div className="w-20 shrink-0">
@@ -261,19 +287,38 @@ export default function DashboardPage() {
 
                 {/* Expanded details */}
                 {expandedId === booking.id && (
-                  <div className="px-6 pb-4 ml-20 grid grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-500 text-xs mb-1">Phone</p>
-                      <p className="text-gray-300">{booking.customer_phone}</p>
+                  <div className="px-6 pb-4 ml-20 space-y-3 text-sm">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <p className="text-gray-500 text-xs mb-1">Phone</p>
+                        <p className="text-gray-300">{booking.customer_phone || 'Not provided'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 text-xs mb-1">Special Requests</p>
+                        <p className="text-gray-300">{booking.dietary_notes || 'None'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 text-xs mb-1">Booked At</p>
+                        <p className="text-gray-300">{new Date(booking.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-gray-500 text-xs mb-1">Dietary Notes</p>
-                      <p className="text-gray-300">{booking.dietary_notes || 'None'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 text-xs mb-1">Booked At</p>
-                      <p className="text-gray-300">{new Date(booking.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
-                    </div>
+                    {booking.booked_via === 'ai_call' && (
+                      <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
+                            <span className="text-emerald-400 text-xs font-medium">AI Call Summary</span>
+                          </div>
+                          <a href="/dashboard/calls" className="text-emerald-400 text-xs hover:text-emerald-300 transition flex items-center gap-1">
+                            View all calls
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                          </a>
+                        </div>
+                        <p className="text-gray-300 text-xs leading-relaxed">
+                          {callLogs[booking.id]?.summary || 'Loading summary...'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
